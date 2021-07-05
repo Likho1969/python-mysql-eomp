@@ -6,18 +6,6 @@ import tkinter.ttk
 from PIL import Image, ImageTk
 
 
-root = tk.Tk()
-root.geometry("2560x1536")     # setting window size
-root.geometry("2560x1536")
-loader = Image.open("powerball-jackpot-2048x1365.jpg")     # background image
-render = ImageTk.PhotoImage(loader)
-img = Label(root, image=render)
-img.place(x=0, y=0)
-loader2 = Image.open("ithuba.jpg")
-render2 = ImageTk.PhotoImage(loader2)
-img2 = tk.Label(root, image=render2)
-img2.place(x=300, y=10)
-
 import mysql.connector  # mysql connector imported
 db_connection = mysql.connector.connect(
     host="127.0.0.1",
@@ -33,7 +21,7 @@ db_cursor = db_connection.cursor(buffered=True)
 class LoginApp(tk.Tk):
    def __init__(self):
        super().__init__()
-       self.title("Login")
+       self.title("Login - Lifechoices Online")
        self.geometry("600x450+351+174")
        self.configure(bg="#000000")
        self.lblHeading =tk.Label(self,text="Welcome to Login Page", font=("Helvetica", 16),bg="black",fg="white")
@@ -74,10 +62,11 @@ class LoginApp(tk.Tk):
        if db_connection.is_connected() == False:
            db_connection.connect()
        # executing cursor with execute method and pass SQL query
-       db_cursor.execute("CREATE DATABASE IF NOT EXISTS User")  # Create a Database Named Bank
-       db_cursor.execute("use User")  # Interact with Bank Database
+       db_cursor.execute("CREATE DATABASE IF NOT EXISTS lifechoicesonline")  # Create a Database Named Bank
+       db_cursor.execute("use lifechoicesonline")  # Interact with Bank Database
        # creating required tables
-       db_cursor.execute("create table if not exists USER(uid VARCHAR(30) NOT NULL  PRIMARY KEY,password VARCHAR(30),fname VARCHAR(30),lname VARCHAR(30),city VARCHAR(20),state VARCHAR(30),mobileno VARCHAR(10))")
+       db_cursor.execute("DROP TABLE IF EXISTS users")
+       db_cursor.execute("CREATE TABLE users(id int(11) NOT NULL AUTO_INCREMENT, full_name varchar(60) DEFAULT NULL, username varchar(50) DEFAULT NULL, contact_number int(11) DEFAULT NULL, email_address varchar(40) DEFAULT NULL, next_of_kin varchar(60) DEFAULT NULL, password varchar(20) DEFAULT NULL,PRIMARY KEY (id)")
        db_connection.commit()
 
        try:
@@ -95,7 +84,7 @@ class LoginApp(tk.Tk):
 
            print(username)
            print(passwd)
-           query ="SELECT * FROM User WHERE uid = '" + username + "' AND password = '" + passwd + "'"
+           query ="SELECT * FROM users WHERE id = '" + username + "' AND password = '" + passwd + "'"
            print(query)
            # implement sql Sentence
            db_cursor.execute(query)
@@ -117,9 +106,8 @@ class LoginApp(tk.Tk):
     self.txtuname.focus_set()
 
    def exit(self):
-    MsgBox = mb.askquestion('Exit Application', 'Are you sure you want to exit the application',
-                                    icon='warning')
-    if MsgBox == 'yes':
+    query = mb.askquestion('Exit Application', 'Are you sure you want to exit the application', icon='warning')
+    if query == 'yes':
         self.destroy()
 
 
@@ -133,15 +121,15 @@ class Login_Success_Window(tk.Toplevel):
          self.geometry("800x400")
          self.title("You Have Successfully Login -> "+str(username))
          self.configure(background="#000000")
-         self.lbl_Login_success = tk.Label(self, text="Hello "+str(username)+" Welcome to Application", font=("Helvetica", 15), bg="black", fg="white")
-         self.lbl_Login_success.place(relx=0.150 , rely=0.111, height=50, width=300)
+         self.lbl_Login_success = tk.Label(self, text="Hello "+str(username)+" Welcome to Lifechoices Online", font=("Helvetica", 15), bg="black", fg="white")
+         self.lbl_Login_success.place(relx=0.150, rely=0.111, height=50, width=300)
 
 
-         db_cursor.execute("SELECT * FROM user limit 0,10")
+         db_cursor.execute("SELECT * FROM users limit 0,10")
          i=1
          for user in db_cursor:
             for j in range(len(user)):
-                e = Entry(self,bg="black", fg="white")
+                e = Entry(self, bg="black", fg="white")
                 e.grid(row=i, column=j)
                 e.insert(END, user[j])
             i=i+1
@@ -172,7 +160,9 @@ class RegisterWindow(tk.Toplevel):
          self.lblLName = tk.Label(self, text="Enter LastName:", font=("Helvetica", 10), bg="black", fg="white")
          self.lblUId = tk.Label(self, text="Enter UserId:", font=("Helvetica", 10), bg="black", fg="white")
          self.lblPwd = tk.Label(self, text="Enter Password:", font=("Helvetica", 10), bg="black", fg="white")
-         #self.lblPin = tk.Label(self, text="Enter Pin:", font=("Helvetica", 10), bg="blue", fg="yellow")
+
+         # self.lblPin = tk.Label(self, text="Enter Pin:", font=("Helvetica", 10), bg="blue", fg="yellow")
+
          self.lblContactNo = tk.Label(self, text="Enter Contact No:", font=("Helvetica", 10), bg="black", fg="white")
          self.lblCity = tk.Label(self, text="Next of Kin:", font=("Helvetica", 10), bg="black", fg="white")
          self.lblState = tk.Label(self, text="Next of Kin Contact:", font=("Helvetica", 10), bg="black", fg="white")
@@ -185,10 +175,8 @@ class RegisterWindow(tk.Toplevel):
          self.txtCity = tk.Entry(self)
          self.txtState = tk.Entry(self)
 
-         self.btn_register = tk.Button(self, text="Register", font=("Helvetica", 11), bg="black", fg="white",
-                                    command=self.register)
-         self.btn_cancel = tk.Button(self, text="Back To Login", font=("Helvetica", 11), bg="black", fg="white",
-                                    command=self.onClose)
+         self.btn_register = tk.Button(self, text="Register", font=("Helvetica", 11), bg="black", fg="white", command=self.register)
+         self.btn_cancel = tk.Button(self, text="Back To Login", font=("Helvetica", 11), bg="black", fg="white", command=self.onClose)
 
          self.lblRegister.place(relx=0.467, rely=0.111, height=21, width=100)
          self.lblFName.place(relx=0.318, rely=0.2, height=21, width=100)
@@ -196,8 +184,8 @@ class RegisterWindow(tk.Toplevel):
          self.lblUId.place(relx=0.355, rely=0.333, height=21, width=78)
          self.lblPwd.place(relx=0.319, rely=0.4, height=21, width=100)
          self.lblContactNo.place(relx=0.310, rely=0.467, height=21, width=105)
-         self.lblCity.place(relx=0.375, rely=0.533, height=21, width=66)
-         self.lblState.place(relx=0.369, rely=0.6, height=21, width=70)
+         self.lblCity.place(relx=0.293, rely=0.533, height=21, width=160)
+         self.lblState.place(relx=0.245, rely=0.6, height=21, width=170)
          self.txtFName.place(relx=0.490, rely=0.2, height=20, relwidth=0.223)
          self.txtLName.place(relx=0.490, rely=0.267, height=20, relwidth=0.223)
          self.txtUId.place(relx=0.490, rely=0.333, height=20, relwidth=0.223)
@@ -210,13 +198,13 @@ class RegisterWindow(tk.Toplevel):
 
    def register(self):
 
-       if db_connection.is_connected()== False:
+       if db_connection.is_connected() == False:
              db_connection.connect()
         # executing cursor with execute method and pass SQL query
-       db_cursor.execute("CREATE DATABASE IF NOT EXISTS User")  # Create a Database Named AradhanaBank
-       db_cursor.execute("use User")  # Interact with Bank Database
+       db_cursor.execute("CREATE DATABASE IF NOT EXISTS users")  # Create a Database Named AradhanaBank
+       db_cursor.execute("use Users")  # Interact with Bank Database
        # creating required tables
-       db_cursor.execute("Create table if not exists USER(uid VARCHAR(30) NOT NULL  PRIMARY KEY,password VARCHAR(30),fname VARCHAR(30),lname VARCHAR(30),city VARCHAR(20),state VARCHAR(30),mobileno VARCHAR(10))")
+       db_cursor.execute("Create table if not exists (uid VARCHAR(30) NOT NULL  PRIMARY KEY,password VARCHAR(30),fname VARCHAR(30),lname VARCHAR(30),city VARCHAR(20),state VARCHAR(30),mobileno VARCHAR(10))")
 
        db_connection.commit()
 
@@ -251,16 +239,16 @@ class RegisterWindow(tk.Toplevel):
            self.txtContact.focus_set()
            return
        if city == "":
-           mb.showinfo('Information', "Please Enter City Name")
+           mb.showinfo('Information', "Please Enter Next of Kin Name")
            self.txtCity.focus_set()
            return
        if state  == "":
-           mb.showinfo('Information', "Please Enter State Name")
+           mb.showinfo('Information', "Please Enter Next of Kin Contact number Name")
            self.txtState.focus_set()
            return
        #Inserting record into bank table of bank database
-       db_cursor.execute("use User")  # Interact with Bank Database
-       query ="INSERT INTO User(uid,password,fname,lname,city,state,mobileno) VALUES ('%s','%s','%s','%s','%s','%s','%s')" %(uid,pwd,fname,lname,city,state,contact_no )
+       db_cursor.execute("use user")  # Interact with Bank Database
+       query ="INSERT INTO user(uid,password,fname,lname,city,state,mobileno) VALUES ('%s','%s','%s','%s','%s','%s','%s')" %(uid, pwd, fname, lname, city, state, contact_no)
 
        try:
             # implement sql Sentence
@@ -281,9 +269,7 @@ class RegisterWindow(tk.Toplevel):
        self.destroy()
        self.original_frame.show()
 
+
 if __name__ == "__main__":
   app = LoginApp()
-  app.mainloop()#tells Python to run the Tkinter event loop.
-   #This method listens for events, such as button clicks or keypresses,
-   #and blocks any code that comes after it from running until the window it's called on is closed.
-   #Go ahead and close the window you've created, and you'll see a new prompt displayed in the shell
+  app.mainloop()
