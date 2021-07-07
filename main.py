@@ -5,15 +5,16 @@ import random
 import tkinter.ttk
 
 import mysql.connector #mysql connector imported
-db_connection = mysql.connector.connect(
-    host="localhost",
-    user="lifechoices",
-    password="@Lifechoices1234",
-    database='lifechoicesonline',
+conn = mysql.connector.connect(
+    host="sql4.freesqldatabase.com",
+    user="sql4423232",
+    password="pCxc9I64Hj",
+    database="sql4423232",
+    port="3306",
     auth_plugin='mysql_native_password'
 )
 #done with db connection
-db_cursor = db_connection.cursor(buffered=True)
+db_cursor = conn.cursor(buffered=True)
 
 class LoginApp(tk.Tk):
    def __init__(self):
@@ -60,14 +61,14 @@ class LoginApp(tk.Tk):
        self.deiconify()
 
    def login(self):
-       if db_connection.is_connected() == False:
-           db_connection.connect()
+       if conn.is_connected() == False:
+           conn.connect()
        # executing cursor with execute method and pass SQL query
 
        db_cursor.execute("use lifechoicesonline")  # Interact with Bank Database
        # creating required tables
        db_cursor.execute("CREATE TABLE users (name varchar(60) NOT NULL, surname varchar(50) NOT NULL, ID Number int(20) NOT NULL AUTO_INCREMENT, Phone Number int(20) NOT NULL, password varchar(20) NOT NULL, next_of_kin_name varchar(20) NOT NULL, next_of_kin_mobile int(20) NOT NULL, sign_in_date DATE, sign_out_time TIME, PRIMARY KEY (id)")
-       db_connection.commit()
+       conn.commit()
 
 
        try:
@@ -98,7 +99,7 @@ class LoginApp(tk.Tk):
                mb.showinfo('Information', "Login failed,Invalid Username or Password.Try again!!!")
        except:
         # Closing Connection
-          db_connection.disconnect()
+          conn.disconnect()
 
 
    def clear_form(self):
@@ -192,15 +193,15 @@ class RegisterWindow(tk.Toplevel):
 
    def register(self):
 
-       if db_connection.is_connected()== False:
-             db_connection.connect()
+       if conn.is_connected()== False:
+             conn.connect()
         # executing cursor with execute method and pass SQL query
        db_cursor.execute("CREATE DATABASE IF NOT EXISTS User")  # Create a Database Named AradhanaBank
        db_cursor.execute("use User")  # Interact with Bank Database
        # creating required tables
        db_cursor.execute("Create table if not exists USER(uid VARCHAR(30) NOT NULL  PRIMARY KEY,password VARCHAR(30),fname VARCHAR(30),lname VARCHAR(30),city VARCHAR(20),state VARCHAR(30),mobileno VARCHAR(10))")
 
-       db_connection.commit()
+       conn.commit()
 
        fname = self.txtFName.get()  # Retrieving entered first name
        lname = self.txtLName.get()  # Retrieving entered last name
@@ -249,13 +250,13 @@ class RegisterWindow(tk.Toplevel):
             db_cursor.execute(query)
             mb.showinfo('Information', "Data inserted Successfully")
             # Submit to database for execution
-            db_connection.commit()
+            conn.commit()
        except:
             mb.showinfo('Information', "Data insertion failed!!!")
             # Rollback in case there is any error
-            db_connection.rollback()
+            conn.rollback()
             #Close database connection
-            db_connection.close()
+            conn.close()
 
 
    def onClose(self):
