@@ -6,9 +6,9 @@ from PIL import Image, ImageTk
 import tkinter.messagebox as mb
 from tkinter.ttk import Combobox
 from datetime import datetime
+import mysql.connector
 
 
-import mysql.connector  # mysql connector imported
 conn = mysql.connector.connect(
             host="localhost",
             user="lifechoices",
