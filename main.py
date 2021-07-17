@@ -6,6 +6,9 @@ from PIL import Image, ImageTk
 import tkinter.messagebox as mb
 from tkinter.ttk import Combobox
 from datetime import datetime
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import mysql.connector
 
 
@@ -35,6 +38,7 @@ class LoginApp(tk.Tk):
        self.txtuname = tk.Entry(self, width=60)
        self.txtpasswd = tk.Entry(self, width=60, show="*")
        self.btn_login = tk.Button(self, text="Login", font=("sans-serif", 11), bg="green", fg="black", command=self.login)
+       self.btn_logout = tk.Button(self, text="Logout", font=("sans-serif", 11), bg="red", fg="black", command=self.logout)
        self.btn_clear= tk.Button(self, text="Clear", font=("sans-serif", 11), bg="green", fg="black", command=self.clear_form)
        self.btn_register = tk.Button(self, text="Not Member ? Register", font=("sans-serif", 11), bg="blue", fg="yellow",  command=self.open_registration_window)
        self.btn_exit = tk.Button(self, text="Exit", font=("sans-serif", 14), bg="red", fg="black", command=self.exit)
@@ -45,8 +49,9 @@ class LoginApp(tk.Tk):
        self.txtuname.place(relx=0.417, rely=0.289, height=20, relwidth=0.273)
        self.txtpasswd.place(relx=0.417, rely=0.378, height=20, relwidth=0.273)
        self.btn_login.place(relx=0.45, rely=0.489, height=24, width=52)
+       self.btn_logout.place(relx=0.30, rely=0.489, height=24, width=62)
        self.btn_clear.place(relx=0.54, rely=0.489, height=24, width=72)
-       self.btn_register.place(relx=0.695, rely=0.489, height=24, width=175 )
+       self.btn_register.place(relx=0.695, rely=0.489, height=24, width=175)
        self.btn_exit.place(relx=0.75, rely=0.911, height=24, width=61)
        self.admin.place(relx=0.15, rely=0.911, height=34, width=120)
 
@@ -62,27 +67,55 @@ class LoginApp(tk.Tk):
 
    def login(self):
         my_db = mysql.connector.connect(user="lifechoices", password="@Lifechoices1234", host="127.0.0.1", database="lifechoicesonline", auth_plugin="mysql_native_password")
-        my_cursor = my_db.cursor()
-        my_cursor.execute("select * from users")
-
-        for i in my_cursor:
-            if self.txtuname.get() == i[0] and self.txtpasswd.get() == i[0]:
-                date = datetime.now().date().strftime("%Y-%m-%d")
-                time = datetime.now().time().strftime("%H:%M:%S")
-                insert = "INSERT INTO login (username, password, login_date, login_time, logout_time) VALUES (%s, %s, %s, %s, %s)"
-                entries = (self.txtuname.get(), self.txtpasswd.get(), date, time, time, "")
-                my_cursor.execute(insert, entries)
-                my_db.commit()
-                mb.showinfo("Login Successful", "Enjoy your day")
-
-                break
-
         if self.txtuname.get() == "" or self.txtpasswd.get() == "":
-            mb.showerror("No Entries", "Please enter Username and Password")
-        elif self.txtpasswd.get() != [3] or self.txtpasswd.get() != [5]:
-            mb.showerror("Access Denied", "Incorrect Username or Password")
+            mb.showerror("No Entries", "Please enter Username and/ or Password")
             self.txtuname.delete(0, END)
             self.txtpasswd.delete(0, END)
+        else:
+            date_now = datetime.now().date().strftime("%Y-%m-%d")
+            time_now = datetime.now().time().strftime('%H:%M:%S')
+            time_now2 = datetime.now().time().strftime('%H:%M:%S')
+            cur = my_db.cursor()
+            cur.execute("select * from users where ID_number=%s and password=%s", (self.txtuname.get(), self.txtpasswd.get()))
+            row = cur.fetchall()
+            insert = "INSERT INTO login (number, username, password, login_date, login_time, logout_time) VALUES (%s, %s, %s, %s, %s, %s)"
+            entries = (self.txtuname.get(), self.txtpasswd.get(), date_now, time_now, time_now2, "")
+            cur.execute(insert, entries)
+            my_db.commit()
+            mb.showinfo("Login Successful", "Welcome to Life Choices Academy, Enjoy your day!")
+            if row == None:
+                    mb.showerror("Login Status - Error!", "Invalid USERNAME & PASSWORD", parent=self)
+            else:
+            # Clear all the entries
+                my_db.close()
+
+   def logout(self):
+               my_db = mysql.connector.connect(user="lifechoices", password="@Lifechoices1234", host="127.0.0.1", database="lifechoicesonline", auth_plugin="mysql_native_password")
+               if self.txtuname.get() == "" or self.txtpasswd.get() == "":
+                        mb.showerror("Logout Status - No Entries", "Please enter Username and/ or Password")
+               else:
+                   try:
+                        date_now = datetime.now().date().strftime("%Y-%m-%d")
+                        time_now = datetime.now().time().strftime('%H:%M:%S')
+                        time_now2 = datetime.now().time().strftime('%H:%M:%S')
+                        cur = my_db.cursor()
+                        cur.execute("select * from users where ID_number=%s and password=%s", (self.txtuname.get(), self.txtpasswd.get()))
+                        row = cur.fetchall()
+                        insert = "INSERT INTO login (username, password, login_date, login_time, logout_time, number) VALUES (%s, %s, %s, %s, %s, %s)"
+                        entries = (self.txtuname.get(), self.txtpasswd.get(), date_now, time_now, time_now2, "")
+                        cur.execute(insert, entries)
+                        my_db.commit()
+                        if row == None:
+                                mb.showerror("Logout Status - Error!", "Invalid USERNAME & PASSWORD", parent=self)
+                        else:
+                            mb.showinfo("Logout Status - Success", "You've Successfully Logged Out", parent=self)
+                        # Clear all the entries
+                            my_db.close()
+
+                   except:
+                        mb.showerror("Logout Status Error!", "Unable to logout")
+                        my_db.rollback()
+                        my_db.close()
 
    def clear_form(self):
     self.txtuname.delete(0, tk.END)
@@ -95,6 +128,7 @@ class LoginApp(tk.Tk):
         self.destroy()
 
    def admin_management(self):
+       self.bind("Control-a", "admin")
        ask = mb.askquestion("Life Choices Online Administrator", "This is only for Admin, if you're not please be advised to login in utilizing the general page")
        if ask == "yes":
            self.withdraw()
@@ -244,11 +278,11 @@ class RegisterWindow(tk.Toplevel):
            return
 
        try:
-            # Inserting record into bank table of bank database
-            self.cursor = self.conn.cursor()  # Interact with Bank Database
+            self.cursor = self.conn.cursor()  # Interact with  Database
             self.cursor.execute("INSERT INTO users(name, surname, ID_number, phone_number, email, next_of_kin, next_of_kin_mobile, role, password, gender) VALUES ('%s','%s','%s','%s','%s', '%s','%s','%s', '%s', '%s')" %(fname, lname, uid, phone, email, next_of_kin, next_of_kin_cell, role, passwd, gender))
             # implement sql Sentence
             self.cursor.execute("commit")
+
             # Submit to database for execution
             mb.showinfo('Registration Status', "Registered Successfully, You may now Login Using your ID Number and Password")
             self.conn.close()
@@ -273,7 +307,6 @@ class RegisterWindow(tk.Toplevel):
        """"""
        self.destroy()
        self.original_frame.show()
-
 
 if __name__ == "__main__":
   app = LoginApp()
