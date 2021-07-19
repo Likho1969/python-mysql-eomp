@@ -217,7 +217,7 @@ class Admin:
                         auth_plugin='mysql_native_password'
     )
                 cursor = conn.cursor()
-                cursor.execute("DELETE FROM login WHERE username='"+self.id_numberEnt.get()+"'")
+                cursor.execute("DELETE FROM login WHERE number='"+self.id_numberEnt.get()+"'")
                 cursor.execute("commit")
                 conn.close()
                 self.x = self.treeView.selection()

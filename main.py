@@ -39,7 +39,7 @@ class LoginApp(tk.Tk):
        self.txtpasswd = tk.Entry(self, width=60, show="*")
        self.btn_login = tk.Button(self, text="Login", font=("sans-serif", 11), bg="green", fg="black", command=self.login)
        self.btn_logout = tk.Button(self, text="Logout", font=("sans-serif", 11), bg="red", fg="black", command=self.logout)
-       self.btn_clear= tk.Button(self, text="Clear", font=("sans-serif", 11), bg="green", fg="black", command=self.clear_form)
+       self.btn_clear = tk.Button(self, text="Clear", font=("sans-serif", 11), bg="green", fg="black", command=self.clear_form)
        self.btn_register = tk.Button(self, text="Not Member ? Register", font=("sans-serif", 11), bg="blue", fg="yellow",  command=self.open_registration_window)
        self.btn_exit = tk.Button(self, text="Exit", font=("sans-serif", 14), bg="red", fg="black", command=self.exit)
        self.admin = tk.Button(self, text="Administrator", font=("sans-serif", 11), bg="blue", fg="white", command=self.admin_management)
@@ -91,26 +91,20 @@ class LoginApp(tk.Tk):
 
    def logout(self):
                my_db = mysql.connector.connect(user="lifechoices", password="@Lifechoices1234", host="127.0.0.1", database="lifechoicesonline", auth_plugin="mysql_native_password")
+               mycursor = my_db.cursor()
                if self.txtuname.get() == "" or self.txtpasswd.get() == "":
                         mb.showerror("Logout Status - No Entries", "Please enter Username and/ or Password")
                else:
                    try:
-                        date_now = datetime.now().date().strftime("%Y-%m-%d")
-                        time_now = datetime.now().time().strftime('%H:%M:%S')
-                        time_now2 = datetime.now().time().strftime('%H:%M:%S')
-                        cur = my_db.cursor()
-                        cur.execute("select * from users where ID_number=%s and password=%s", (self.txtuname.get(), self.txtpasswd.get()))
-                        row = cur.fetchall()
-                        insert = "INSERT INTO login (username, password, login_date, login_time, logout_time, number) VALUES (%s, %s, %s, %s, %s, %s)"
-                        entries = (self.txtuname.get(), self.txtpasswd.get(), date_now, time_now, time_now2, "")
-                        cur.execute(insert, entries)
+                        now = datetime.now()
+                        formatted_date = now.strftime('%Y-%m-%d %H:%M:%S')
+                        sql = "UPDATE login SET logout_time = %s WHERE name = %s AND password = %s"
+                        val = (formatted_date, self.txtuname.get(), self.txtpasswd.get())
+                        mycursor.execute(sql, val)
                         my_db.commit()
-                        if row == None:
-                                mb.showerror("Logout Status - Error!", "Invalid USERNAME & PASSWORD", parent=self)
-                        else:
-                            mb.showinfo("Logout Status - Success", "You've Successfully Logged Out", parent=self)
-                        # Clear all the entries
-                            my_db.close()
+                        self.txtuname.delete(0, END)
+                        self.txtpasswd.delete(0, END)
+                        mb.showinfo(title=None, message="Logged Out successfully. Please login the next user. Thank you")
 
                    except:
                         mb.showerror("Logout Status Error!", "Unable to logout")
@@ -307,6 +301,7 @@ class RegisterWindow(tk.Toplevel):
        """"""
        self.destroy()
        self.original_frame.show()
+
 
 if __name__ == "__main__":
   app = LoginApp()
